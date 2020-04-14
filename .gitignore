@@ -1,4 +1,4 @@
 screenshots/*
 venv/*
-screenshots/*
+config.json
 .DS_Store
