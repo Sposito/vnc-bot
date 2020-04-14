@@ -57,7 +57,7 @@ class Bot():
 
     x_values = [0, 1920]
     y_values = [0, 1080]
-    c_values = [(1,0,0),(1,0,0)]
+    c_values = [(1,1,1),(1,1,1)]
 
     def move(self, x, y, t=100):
         def get_distance(x1, y1, x2, y2):
@@ -74,17 +74,13 @@ class Bot():
             return value
 
 
-
         distance = get_distance(x, y, *self.cursor_pos)
 
         if distance == 0:
             return
 
         factor = distance / 2203  # diagonal on full hd screen
-        steps = int(t*factor*60)
-
-        # sin_teta = y / distance
-        # cos_teta = x / distance
+        steps = int(t*factor*40)
 
         teta = atan2( y - self.cursor_pos[1], x - self.cursor_pos[0])
         sin_teta = sin(teta)
@@ -92,38 +88,34 @@ class Bot():
 
         print('tgt: ', (x, y), ' origin: ', self.cursor_pos, ' angle: ', math.degrees(teta))
 
-        curve_height = random.choices([-1,1])[0] * random.randrange(30,50)
+        curve_height =  (random.random() - 0.5) * 2
 
+        _x = self.cursor_pos[0]
+        _y = self.cursor_pos[1]
+        for i in range(steps):
+            n = i /steps
+            cache_x = x * n + (1 -n) * _x
+            cache_y = y * n + (1 -n) * _y
 
-        for i in range(steps)[::-1]:
-            curve_x = i/steps
-            curve_y = curve(curve_x, curve_height)
-            temp_x = curve_x * distance
-            temp_y = curve_y
+            h =  curve(n, curve_height)
 
-            temp_x -= self.cursor_pos[0]
-            temp_y -= self.cursor_pos[1]
+            cache_x += h * sin_teta * distance / 5
+            cache_y += h * cos_teta * distance / 5
 
-            # cache_x = temp_x * cos_teta - (temp_y * sin_teta)
-            # cache_y = temp_x * sin_teta + (temp_y * cos_teta)
-            cache_x = temp_x
-            cache_y = temp_y
-            cache_x += self.cursor_pos[0]
-            cache_y += self.cursor_pos[1]
+            cache_x += (random.random()-.5) * 1
+            cache_y += (random.random() - .5) * 1
 
-            # cache_x += random.randrange(-2,2)
-            # cache_y += random.randrange(-2,2)
+            cache_x = clamp(cache_x, 1920)
+            cache_y = clamp(cache_y, 1080)
 
-
-            cache_x = clamp(cache_x, 1920, 0)
-            cache_y = clamp(cache_y, 1080, 0)
 
 
             # print((temp_x,temp_y))
             self.x_values.append(cache_x)
             self.y_values.append(1080 -cache_y)
-            self.c_values.append((0, i/steps, 1 - i/steps))
-            # self.client.mouseMove(int(cache_x), int(cache_y))
+            self.c_values.append(( i/steps,0, 1 - i/steps))
+            self.client.mouseMove(int(cache_x), int(cache_y))
+
 
         self.client.mouseMove(x,y)
         self.cursor_pos = (x, y)
@@ -147,14 +139,15 @@ bot = Bot()
 
 # bot.move(0,1080)
 # time.sleep(.5)
-
-bot.move(1920, 1080)
+for i in range(9):
+    bot.move(int(random.random() * 1920), int(random.random() * 1080))
+    time.sleep(random.random())
 
 # bot.move(1920, 1000)
 # time.sleep(.5)
 # bot.move(30, 30)
 
-plt.scatter(bot.x_values, bot.y_values, c=bot.c_values)
-
-plt.show()
+# plt.scatter(bot.x_values, bot.y_values, c=bot.c_values)
+#
+# plt.show()
 
